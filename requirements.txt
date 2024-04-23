@@ -1,9 +1,9 @@
 streamlit
-Pillow
 pandas
 numpy
 PyMuPDF
 tabula-py
 python-constraint
 matplotlib
+Pillow
 streamlit-js-eval
