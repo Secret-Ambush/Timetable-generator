@@ -21,8 +21,6 @@ text = "Timetable Generator"
 font_path = "assets/VastShadow-Regular.ttf"
 font_size = 30 
 font = ImageFont.truetype(font_path, font_size)
-text_width, text_height = draw.textsize(text, font=font)
-
 bbox = draw.textbbox((0, 0), text, font=font)
 text_width = bbox[2] - bbox[0]
 text_height = bbox[3] - bbox[1]
