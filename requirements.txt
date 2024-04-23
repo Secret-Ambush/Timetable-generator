@@ -1,0 +1,12 @@
+fitz==0.0.1.dev2
+Flask==2.2.5
+matplotlib==3.7.1
+numpy==1.26.4
+pandas==1.5.2
+Pillow==9.5.0
+Pillow==10.3.0
+python-constraint==1.4.0
+streamlit==1.33.0
+streamlit_js_eval==0.1.7
+tabula==1.0.5
+tabula_py==2.9.0

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Timetable Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-6">Upload your timetable PDF</h1>
+        <form id="timetableForm" class="space-y-4" enctype="multipart/form-data">
+            <div>
+                <input type="file" name="timetablePdf" id="timetablePdf" required class="border-2 border-gray-300 p-2">
+            </div>
+            <div>
+                <select name="year" id="year" required class="border-2 border-gray-300 p-2">
+                    <option value="">Select Year</option>
+                    <option value="1">First Year</option>
+                    <option value="2">Second Year</option>
+                    <option value="3">Third Year</option>
+                    <option value="4">Fourth Year</option>
+                </select>
+            </div>
+            <div>
+                <input type="text" name="discipline" id="discipline" placeholder="Discipline" required class="border-2 border-gray-300 p-2">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2">Generate Timetable</button>
+        </form>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
