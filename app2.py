@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import fitz  # PyMuPDF
+import tabula
 from tabula import read_pdf
 from constraint import Problem
 import pandas as pd
