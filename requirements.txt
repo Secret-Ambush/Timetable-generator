@@ -1,7 +1,7 @@
 streamlit
+PyPDF2
 pandas
 numpy
-pytesseract
 PyMuPDF
 tabula-py
 python-constraint
