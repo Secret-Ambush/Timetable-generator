@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 from streamlit_js_eval import streamlit_js_eval
 
-
 im = Image.open('assets/App_Icon.png')
 image = Image.open("assets/3.png")
 width, height = image.size
@@ -382,8 +381,8 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
             timetable_df.index = range(1, len(timetable_df) + 1)
             
             styled_df = highlight_practicals(timetable_df)
-            st.experimental_data_editor(styled_df)
-            # timetable_placeholder.markdown(html, unsafe_allow_html=True)
+            html = styled_df.render()
+            timetable_placeholder.markdown(html, unsafe_allow_html=True)
             st.write("\n\n")
             
             col1, col2, col3, col4, col5 = download_button_placeholder.columns([1, 1, 1, 1, 1])
