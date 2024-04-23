@@ -381,7 +381,7 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
             timetable_df.index = range(1, len(timetable_df) + 1)
             
             styled_df = highlight_practicals(timetable_df)
-            html = styled_df.render()
+            html = styled_df.to_html()
             timetable_placeholder.markdown(html, unsafe_allow_html=True)
             st.write("\n\n")
             
