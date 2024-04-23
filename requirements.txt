@@ -7,3 +7,4 @@ python-constraint
 matplotlib
 Pillow
 streamlit-js-eval
+PIL
