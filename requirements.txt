@@ -10,4 +10,4 @@ streamlit_js_eval==0.1.7
 tabula==1.0.5
 tabula_py==2.9.0
 PyMuPDF
-tabula
+tabula-py
