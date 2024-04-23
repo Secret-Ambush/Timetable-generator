@@ -9,3 +9,4 @@ streamlit==1.33.0
 streamlit_js_eval==0.1.7
 tabula_py==2.9.0
 PyMuPDF
+frontend
