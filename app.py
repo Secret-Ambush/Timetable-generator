@@ -32,6 +32,35 @@ draw.text((x, y), text, font=font, fill=(0, 0, 0))
 
 flag = True
 
+footer="""<style>
+a:link , a:visited{
+color: blue;
+background-color: transparent;
+text-decoration: underline;
+}
+
+a:hover,  a:active {
+color: red;
+background-color: transparent;
+text-decoration: underline;
+}
+
+.footer {
+position: fixed;
+left: 0;
+bottom: 0;
+width: 100%;
+background-color: transparent;
+color: white;
+text-align: center;
+}
+</style>
+<div class="footer">
+<p></p>
+<p>Made with ♥️ by Riddhi Goswami</p>
+</div>
+"""
+
 def remove_header(df):
     header_row_index = df[df.iloc[:, 0] == 'COM COD'].index[0]
     df = df.drop(index=df.index[:header_row_index]).reset_index(drop=True)
@@ -807,3 +836,5 @@ if st.session_state.form_submitted is not None and st.session_state.compulsory_d
             generate_timetable(uploaded_file, timetable_placeholder, download_button_placeholder, course_details_placeholder)
     except:
         st.info("No available courses")
+        
+st.markdown(footer,unsafe_allow_html=True)
