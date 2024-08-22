@@ -80,24 +80,27 @@ def map_days_hours_to_time_slots(day_hour_str):
     day_hour_list = []
     day_str = ''
     hour_str = ''
-    for char in day_hour_str:
-        if char.isalpha():
-            if day_str and hour_str:
-                day = days.get(day_str, "Unknown Day")
-                for hour in hour_str:
-                    slot = time_slots[day][int(hour)-1]
-                    day_hour_list.append((day, slot))
-                day_str = ''
-                hour_str = ''
-            day_str += char
-        elif char.isdigit():
-            hour_str += char
-    if day_str and hour_str:
-        day = days.get(day_str, "Unknown Day")
-        for hour in hour_str:
-            slot = time_slots[day][int(hour)-1]
-            day_hour_list.append((day, slot))
-    return day_hour_list
+    try:
+        for char in day_hour_str:
+            if char.isalpha():
+                if day_str and hour_str:
+                    day = days.get(day_str, "Unknown Day")
+                    for hour in hour_str:
+                        slot = time_slots[day][int(hour)-1]
+                        day_hour_list.append((day, slot))
+                    day_str = ''
+                    hour_str = ''
+                day_str += char
+            elif char.isdigit():
+                hour_str += char
+        if day_str and hour_str:
+            day = days.get(day_str, "Unknown Day")
+            for hour in hour_str:
+                slot = time_slots[day][int(hour)-1]
+                day_hour_list.append((day, slot))
+        return day_hour_list
+    except Exception as e:
+        return day_hour_list    
 
 def clean_course_title(title):
     words = title.split()
@@ -184,18 +187,22 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
     doc.close()
 
     tables = read_pdf(uploaded_file, pages='all', multiple_tables=True)
+    
     if tables:
-        df = remove_header(tables[0])
-        column_names = df.columns
-        for i in range(1, num_pages):
-            temp_df = tables[i]
-            temp_df.columns = column_names
-            df = pd.concat([df, temp_df], ignore_index=True)
+        try:
+            df = remove_header(tables[0])
+            column_names = df.columns
+            for i in range(1, num_pages):
+                temp_df = tables[i]
+                temp_df.columns = column_names
+                df = pd.concat([df, temp_df], ignore_index=True)
+        except:
+            pass
         
         df = df.drop('COM COD', axis=1)
         df = forward_fill_course_details(df)
-        df = df.dropna(subset=['DAYS/  HOURS'])
-        df['TIME SLOTS'] = df['DAYS/  HOURS'].apply(map_days_hours_to_time_slots)
+        df = df.dropna(subset=['DAYS/ HOURS'])
+        df['TIME SLOTS'] = df['DAYS/ HOURS'].apply(map_days_hours_to_time_slots)
         humanities = df[df['COURSE NO.'].str.startswith('HSS')]
         disp_elec = df[
             (
