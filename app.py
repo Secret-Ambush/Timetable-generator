@@ -100,6 +100,9 @@ def map_days_hours_to_time_slots(day_hour_str):
                 day_hour_list.append((day, slot))
         return day_hour_list
     except Exception as e:
+        print("here ***********")
+        print(day_str)
+        print(e)
         return day_hour_list    
 
 def clean_course_title(title):
@@ -192,10 +195,13 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
         try:
             df = remove_header(tables[0])
             column_names = df.columns
-            for i in range(1, num_pages):
+            
+            for i in range(1, 10):
                 temp_df = tables[i]
+                header_row = pd.DataFrame([temp_df.columns], columns=column_names)
                 temp_df.columns = column_names
-                df = pd.concat([df, temp_df], ignore_index=True)
+                temp_df_with_header = pd.concat([header_row, temp_df], ignore_index=True)
+                df = pd.concat([df, temp_df_with_header], ignore_index=True)
         except:
             pass
         
@@ -247,7 +253,6 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
                 st.session_state.all_elective_df = disp_elec
                 st.session_state.hum = humanities
                 
-        
         elif st.session_state.year == "Fourth Year":
             compulsory_df = []
             all_elective_df = disp_elec
@@ -374,7 +379,10 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
                     st.write("\n\n")
                     st.success("Successfully generated timetable")
             else:
-                st.warning("No possible schedule found that satisfies all your constraints.")
+                if st.session_state.year == "Fourth Year" and st.session_state.selected_elective is None:
+                    st.warning("You have no core courses. Choose some electives :)")
+                else:
+                    st.warning("No possible schedule found that satisfies all your constraints.")
                 return
 
             course_map = {}
