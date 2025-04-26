@@ -70,9 +70,10 @@ def remove_header(df):
     return df
 
 def forward_fill_course_details(df):
-    df['COURSE TITLE'].fillna(method='ffill', inplace=True)
-    df['COURSE NO.'].fillna(method='ffill', inplace=True)
-    df['CREDIT\rL P U'].fillna(method='ffill', inplace=True)
+    df[CREDIT].fillna(method='ffill', inplace=True)
+    df[COURSE_NO].fillna(method='ffill', inplace=True)
+    df[COURSE_TITLE].fillna(method='ffill', inplace=True)
+
     return df
 
 def map_days_hours_to_time_slots(day_hour_str):
@@ -100,9 +101,6 @@ def map_days_hours_to_time_slots(day_hour_str):
                 day_hour_list.append((day, slot))
         return day_hour_list
     except Exception as e:
-        print("here ***********")
-        print(day_str)
-        print(e)
         return day_hour_list    
 
 def clean_course_title(title):
@@ -135,14 +133,14 @@ def all_courses_no_overlap(*sections):
        
 def highlight_practicals(df):
     try:
-        merg = pd.concat([st.session_state.all_elective_df['COURSE TITLE'], st.session_state.hum['COURSE TITLE']],ignore_index=True)
+        merg = pd.concat([st.session_state.all_elective_df[COURSE_TITLE], st.session_state.hum[COURSE_TITLE]],ignore_index=True)
         elective_titles = set(merg)
     except:
         try:
-            elective_titles = st.session_state.hum['COURSE TITLE']
+            elective_titles = st.session_state.hum[COURSE_TITLE]
         except:
             try:
-                elective_titles = st.session_state.all_elective_df['COURSE TITLE']
+                elective_titles = st.session_state.all_elective_df[COURSE_TITLE]
             except:
                 pass
             pass
@@ -185,11 +183,12 @@ def generate_csv(df):
     return csv.encode()
 
 def generate_timetable(uploaded_file, timetable_placeholder, download_button_placeholder, course_details_placeholder, flag1 = False):
+    global CREDIT, COURSE_NO, COURSE_TITLE
     doc = fitz.open(stream=uploaded_file.read(), filetype='pdf')
     num_pages = len(doc)
     doc.close()
 
-    tables = read_pdf(uploaded_file, pages='all', multiple_tables=True)
+    tables = read_pdf(uploaded_file, pages='all', multiple_tables=True)   
     
     if tables:
         try:
@@ -205,50 +204,89 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
         except:
             pass
         
-        df = df.drop('COM COD', axis=1)
+        #Getting the header names
+        COM_COD = ""
+        COURSE_NO = ""
+        COURSE_TITLE = ""
+        CREDIT = ""
+        SEC = ""
+        INSTRUCTOR = ""
+        ROOM = ""
+        DAYS_HOURS = "" 
+        
+        headerList = df.columns
+        for i in range(1, headerList.size, 1):
+            if (headerList[i].lower().find('com') != -1):
+                COM_COD = str(headerList[i])
+            elif (headerList[i].lower().find('no.') != -1):
+                COURSE_NO = headerList[i]
+            elif (headerList[i].lower().find('title') != -1):
+                COURSE_TITLE = headerList[i]
+            elif (headerList[i].lower().find('credit') != -1):
+                CREDIT = headerList[i]
+            elif (headerList[i].lower().find('sec') != -1):
+                SEC = headerList[i]
+            elif (headerList[i].lower().find('instructor') != -1):
+                INSTRUCTOR = headerList[i]
+            elif (headerList[i].lower().find('room') != -1):
+                ROOM = headerList[i]
+            elif (headerList[i].lower().find('days') != -1):
+                DAYS_HOURS = headerList[i] 
+                
+        # Save important headers to session_state
+        st.session_state.COURSE_TITLE = COURSE_TITLE
+        st.session_state.COURSE_NO = COURSE_NO
+        st.session_state.CREDIT = CREDIT
+        st.session_state.SEC = SEC
+        st.session_state.INSTRUCTOR = INSTRUCTOR
+        st.session_state.ROOM = ROOM
+        st.session_state.DAYS_HOURS = DAYS_HOURS
+          
+                
+        df = df.drop(COM_COD, axis=1)
         df = forward_fill_course_details(df)
-        df = df.dropna(subset=['DAYS/ HOURS'])
-        df['TIME SLOTS'] = df['DAYS/ HOURS'].apply(map_days_hours_to_time_slots)
-        humanities = df[df['COURSE NO.'].str.startswith('HSS')]
+        df = df.dropna(subset=[DAYS_HOURS])
+        df['TIME SLOTS'] = df[DAYS_HOURS].apply(map_days_hours_to_time_slots)
+        humanities = df[df[COURSE_NO].str.startswith('HSS')]
         disp_elec = df[
             (
-                (df['COURSE NO.'].str.startswith('CS') | df['COURSE NO.'].str.startswith('MATH') | 
-                df['COURSE NO.'].isin(['BITS F312', 'BITS F416', 'BITS F452', 'BITS F464']))
-                & ~df['COURSE NO.'].isin(first_year_first_semester_requirements)
-                & ~df['COURSE NO.'].isin(first_year_second_semester_requirements)
-                & ~df['COURSE NO.'].isin(second_year_first_semester_requirements) 
-                & ~df['COURSE NO.'].isin(second_year_second_semester_requirements) 
-                & ~df['COURSE NO.'].isin(third_year_first_semester_requirements) 
-                & ~df['COURSE NO.'].isin(third_year_second_semester_requirements)
+                (df[COURSE_NO].str.startswith('CS') | df[COURSE_NO].str.startswith('MATH') | 
+                df[COURSE_NO].isin(['BITS F312', 'BITS F416', 'BITS F452', 'BITS F464']))
+                & ~df[COURSE_NO].isin(first_year_first_semester_requirements)
+                & ~df[COURSE_NO].isin(first_year_second_semester_requirements)
+                & ~df[COURSE_NO].isin(second_year_first_semester_requirements) 
+                & ~df[COURSE_NO].isin(second_year_second_semester_requirements) 
+                & ~df[COURSE_NO].isin(third_year_first_semester_requirements) 
+                & ~df[COURSE_NO].isin(third_year_second_semester_requirements)
             )
-            & ~df['COURSE TITLE'].str.contains('Practical')
+            & ~df[COURSE_TITLE].str.contains('Practical')
         ]
 
         
         if st.session_state.year == "First Year":
             if st.session_state.semester == "First Semester":
-                compulsory_df = df[df['COURSE NO.'].isin(first_year_first_semester_requirements)]
+                compulsory_df = df[df[COURSE_NO].isin(first_year_first_semester_requirements)]
             elif st.session_state.semester == "Second Semester":
-                compulsory_df = df[df['COURSE NO.'].isin(first_year_second_semester_requirements)]
+                compulsory_df = df[df[COURSE_NO].isin(first_year_second_semester_requirements)]
         
         elif st.session_state.year == "Second Year":
             if st.session_state.semester == "First Semester":
-                compulsory_df = df[df['COURSE NO.'].isin(second_year_first_semester_requirements)]
+                compulsory_df = df[df[COURSE_NO].isin(second_year_first_semester_requirements)]
                 st.session_state.hum = humanities
             elif st.session_state.semester == "Second Semester":
-                compulsory_df = df[df['COURSE NO.'].isin(second_year_second_semester_requirements)]
-                all_elective_df = df[df['COURSE NO.'].isin(second_year_second_semester_elective)]
+                compulsory_df = df[df[COURSE_NO].isin(second_year_second_semester_requirements)]
+                all_elective_df = df[df[COURSE_NO].isin(second_year_second_semester_elective)]
                 st.session_state.all_elective_df = all_elective_df
                 st.session_state.hum = humanities
         
         elif st.session_state.year == "Third Year":
             if st.session_state.semester == "First Semester":
-                compulsory_df = df[df['COURSE NO.'].isin(third_year_first_semester_requirements)]
+                compulsory_df = df[df[COURSE_NO].isin(third_year_first_semester_requirements)]
                 all_elective_df = disp_elec
                 st.session_state.all_elective_df = disp_elec
                 st.session_state.hum = humanities
             elif st.session_state.semester == "Second Semester":
-                compulsory_df = df[df['COURSE NO.'].isin(third_year_second_semester_requirements)]
+                compulsory_df = df[df[COURSE_NO].isin(third_year_second_semester_requirements)]
                 all_elective_df = disp_elec
                 st.session_state.all_elective_df = disp_elec
                 st.session_state.hum = humanities
@@ -265,11 +303,11 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
                 if index == 0:
                     continue
                 
-                if row['COURSE TITLE'] == 'Practical':
-                    prev_course_title = compulsory_df.at[index - 1, 'COURSE TITLE']
-                    compulsory_df.at[index, 'COURSE TITLE'] = prev_course_title + ' Practical'
+                if row[COURSE_TITLE] == 'Practical':
+                    prev_course_title = compulsory_df.at[index - 1, COURSE_TITLE]
+                    compulsory_df.at[index, COURSE_TITLE] = prev_course_title + ' Practical'
 
-            compulsory_df['COURSE TITLE'] = compulsory_df.apply(lambda row: clean_course_title(row['COURSE TITLE']), axis=1)
+            compulsory_df[COURSE_TITLE] = compulsory_df.apply(lambda row: clean_course_title(row[COURSE_TITLE]), axis=1)
             st.session_state.initial_df = compulsory_df
         
         except:
@@ -281,8 +319,8 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
                     enforced_course_id = selected_course
                     enforced_section = selected_section
 
-                    compulsory_df = compulsory_df[~((compulsory_df['COURSE TITLE'] == enforced_course_id) &
-                                                    (compulsory_df['SEC'] != enforced_section))]
+                    compulsory_df = compulsory_df[~((compulsory_df[COURSE_TITLE] == enforced_course_id) &
+                                                    (compulsory_df[SEC] != enforced_section))]
 
             else:
                 pass
@@ -292,8 +330,8 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
                     enforced_course_id = selected_course
                     enforced_section = selected_section
 
-                    compulsory_df = disp_elec[~((disp_elec['COURSE TITLE'] == enforced_course_id) &
-                                                    (disp_elec['SEC'] != enforced_section))]
+                    compulsory_df = disp_elec[~((disp_elec[COURSE_TITLE] == enforced_course_id) &
+                                                    (disp_elec[SEC] != enforced_section))]
 
             else:
                 pass
@@ -310,11 +348,11 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
             for selected_elec, selected_elec_section in st.session_state['electives'].items():
                 enforced_elec_id = selected_elec
                 enforced_elec_section = selected_elec_section
-                temp_df = all_elective_df[(all_elective_df['COURSE TITLE'] == enforced_elec_id) &
-                                                (all_elective_df['SEC'] == enforced_elec_section)]
+                temp_df = all_elective_df[(all_elective_df[COURSE_TITLE] == enforced_elec_id) &
+                                                (all_elective_df[SEC] == enforced_elec_section)]
                 elective_dfs.append(temp_df)
                 
-                temp_df = all_elective_df[(all_elective_df['COURSE TITLE'] == enforced_elec_id)]
+                temp_df = all_elective_df[(all_elective_df[st.session_state.COURSE_TITLE] == enforced_elec_id)]
                 all_elec.append(temp_df)
             
             all_elec = pd.concat(all_elec, ignore_index=True)
@@ -342,8 +380,8 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
             try:
 
                 for _, row in compulsory_df.iterrows():
-                    course_id = row['COURSE TITLE']
-                    section = row['SEC']
+                    course_id = row[COURSE_TITLE]
+                    section = row[SEC]
                     time_slots = row['TIME SLOTS']
 
                     if course_id not in course_sections:
@@ -356,8 +394,8 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
              
             if st.session_state.electives:   
                 for _, row in elective_df.iterrows():
-                    elec_course_id = row['COURSE TITLE']
-                    elec_section = row['SEC']
+                    elec_course_id = row[COURSE_TITLE]
+                    elec_section = row[SEC]
                     time_slots = row['TIME SLOTS']
 
                     if elec_course_id not in course_sections:
@@ -440,9 +478,9 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
                 section_number = details[0]
                 
                 if st.session_state.electives:
-                    filtered_df = merged_df[(merged_df['SEC'] == section_number) & (merged_df['COURSE TITLE'] == course)]['INSTRUCTOR-IN-CHARGE/ Instructor']
+                    filtered_df = merged_df[(merged_df[SEC] == section_number) & (merged_df[COURSE_TITLE] == course)][INSTRUCTOR]
                 else:
-                    filtered_df = compulsory_df[(compulsory_df['SEC'] == section_number) & (compulsory_df['COURSE TITLE'] == course)]['INSTRUCTOR-IN-CHARGE/ Instructor']
+                    filtered_df = compulsory_df[(compulsory_df[SEC] == section_number) & (compulsory_df[COURSE_TITLE] == course)][INSTRUCTOR]
                 try:
                     instructor_name = filtered_df.iloc[0]
                 except:
@@ -457,7 +495,7 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
             course_details_placeholder.table(data)
             
             st.write("\n\n")
-
+            
 def clear_multi():
     st.session_state.multiselect = []
     return
@@ -510,6 +548,21 @@ if 'selected_hum' not in st.session_state:
     st.session_state.selected_hum = None
 if 'multiselect' not in st.session_state:
     st.session_state.multiselect = []
+if 'COURSE_TITLE' not in st.session_state:
+    st.session_state.COURSE_TITLE = None
+if 'COURSE_NO' not in st.session_state:
+    st.session_state.COURSE_NO = None
+if 'CREDIT' not in st.session_state:
+    st.session_state.CREDIT = None
+if 'SEC' not in st.session_state:
+    st.session_state.SEC = None
+if 'INSTRUCTOR' not in st.session_state:
+    st.session_state.INSTRUCTOR = None
+if 'ROOM' not in st.session_state:
+    st.session_state.ROOM = None
+if 'DAYS_HOURS' not in st.session_state:
+    st.session_state.DAYS_HOURS = None
+    
     
 year_options = ["First Year", "Second Year", "Third Year", "Fourth Year"]
 semester_options = ["First Semester", "Second Semester"]
@@ -531,10 +584,10 @@ third_year_second_semester_elective = ('ECON F211', 'MGTS F211')
 
 
 st.set_page_config(layout="wide", page_title="Timetable Generator", page_icon = im)
-st.image(image, use_container_width=True)
+st.image(image, use_column_width=True)
 col1, col2 = st.columns([10,2])
 col2.write("\n\n")
-col2.image("assets/blah3.gif", use_container_width=True)
+col2.image("assets/blah3.gif", use_column_width=True)
 
 col1.markdown("""### Welcome to Your Very Own Timetable Application! 
 Exclusively for BITS Students! ✨ Do you find it difficult to understand the academic timetable shared by 
@@ -604,7 +657,7 @@ if (submitted and uploaded_file is not None):
 
 st.write('\n\n')       
 divider_image = create_divider(800, 2, 'white', 1)
-st.image(divider_image, use_container_width=True)
+st.image(divider_image, use_column_width=True)
 st.write('\n\n')
 mymsg2 = st.empty()
 st.write('\n\n')
@@ -614,11 +667,11 @@ if st.session_state.form_submitted is not None and st.session_state.all_elective
     if st.session_state.all_elective_df is not None:
         st.subheader("Add electives?")
         st.caption("⚠️ You can choose only one")
-        electives_title = np.sort(ele["COURSE TITLE"].unique())
+        electives_title = np.sort(ele[st.session_state.COURSE_TITLE].unique())
         selected_elective = st.radio("Select an elective:", electives_title, horizontal=True, key="selected_elective")
 
         if selected_elective:
-            filtered_df2 = ele[ele["COURSE TITLE"] == selected_elective]
+            filtered_df2 = ele[ele[st.session_state.COURSE_TITLE] == selected_elective]
             available_sections2 = filtered_df2["SEC"].unique().astype(int)
             selected_elec_section = st.selectbox("Select a section:", available_sections2, key="selected_elec_section")
     else:
@@ -645,7 +698,10 @@ if st.session_state.form_submitted is not None and st.session_state.all_elective
         content = f"#### Electives Chosen:\n{elective_list}"
         mymsg2.markdown(content)
         
-        elective_titles = st.session_state.all_elective_df['COURSE TITLE'].unique()
+        print("*****************************")
+        print(COURSE_TITLE)
+        elective_titles = st.session_state.all_elective_df[st.session_state.COURSE_TITLE].unique()
+        print("*****************************")
         keys_to_remove = [key for key in st.session_state.constraints.keys() if key in elective_titles]
         for key in keys_to_remove:
             del st.session_state.constraints[key]
@@ -659,7 +715,7 @@ if st.session_state.form_submitted is not None and st.session_state.all_elective
     if st.session_state.all_elective_df is not None:
         st.subheader("Add electives?")
         st.caption("⚠️ You can choose multiple")
-        electives_title = np.sort(ele["COURSE TITLE"].unique()) if ele["COURSE TITLE"].unique().size > 0 else []
+        electives_title = np.sort(ele[st.session_state.COURSE_TITLE].unique()) if ele[st.session_state.COURSE_TITLE].unique().size > 0 else []
         selected_elective = st.multiselect("Select electives:", electives_title, key="multiselect")
 
     else:
@@ -692,7 +748,8 @@ if st.session_state.form_submitted is not None and st.session_state.all_elective
         content = f"#### Electives Chosen:\n{elective_list}"
         mymsg2.markdown(content)
         
-        elective_titles = st.session_state.all_elective_df['COURSE TITLE'].unique()
+        print(COURSE_TITLE + "******************")
+        elective_titles = st.session_state.all_elective_df[st.session_state.COURSE_TITLE].unique()
         keys_to_remove = [key for key in st.session_state.constraints.keys() if key in elective_titles]
         for key in keys_to_remove:
             del st.session_state.constraints[key]
@@ -703,7 +760,7 @@ if st.session_state.form_submitted is not None and st.session_state.hum is not N
     humanities = st.session_state.hum
     st.subheader("Add humanities electives?")
     st.caption("⚠️ You can choose multiple")
-    electives_title = np.sort(humanities["COURSE TITLE"].unique())
+    electives_title = np.sort(humanities[st.session_state.COURSE_TITLE].unique())
     selected_hum = st.radio("Select a humanities elective:", electives_title, horizontal=True, key="selected_hum")
 
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
@@ -726,7 +783,7 @@ if st.session_state.form_submitted is not None and st.session_state.hum is not N
         mymsg2.markdown(content)
        
         try: 
-                elective_titles = st.session_state.all_elective_df['COURSE TITLE'].unique()
+                elective_titles = st.session_state.all_elective_df[st.session_state.COURSE_TITLE].unique()
                 keys_to_remove = [key for key in st.session_state.constraints.keys() if key in elective_titles]
                 for key in keys_to_remove:
                     del st.session_state.constraints[key]
@@ -737,14 +794,14 @@ if st.session_state.form_submitted is not None and st.session_state.hum is not N
     
     st.write('\n\n')
     divider_image = create_divider(800, 2, 'white', 1)
-    st.image(divider_image, use_container_width=True)
+    st.image(divider_image, use_column_width=True)
     st.write('\n\n') 
 
 if st.session_state.form_submitted is not None and st.session_state.hum is not None and flag and st.session_state.year != 'Third Year' and st.session_state.year != 'Fourth Year':
     humanities = st.session_state.hum
     st.subheader("Add humanities electives?")
     st.caption("⚠️ You can choose only one")
-    electives_title = np.sort(humanities["COURSE TITLE"].unique())
+    electives_title = np.sort(humanities[st.session_state.COURSE_TITLE].unique())
     selected_hum = st.radio("Select a humanities elective:", electives_title, horizontal=True, key="selected_hum")
 
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
@@ -770,7 +827,7 @@ if st.session_state.form_submitted is not None and st.session_state.hum is not N
         mymsg2.markdown(content)
        
         try: 
-                elective_titles = st.session_state.all_elective_df['COURSE TITLE'].unique()
+                elective_titles = st.session_state.all_elective_df[st.session_state.COURSE_TITLE].unique()
                 keys_to_remove = [key for key in st.session_state.constraints.keys() if key in elective_titles]
                 for key in keys_to_remove:
                     del st.session_state.constraints[key]
@@ -781,7 +838,7 @@ if st.session_state.form_submitted is not None and st.session_state.hum is not N
     
     st.write('\n\n')
     divider_image = create_divider(800, 2, 'white', 1)
-    st.image(divider_image, use_container_width=True)
+    st.image(divider_image, use_column_width=True)
     st.write('\n\n') 
     
 if st.session_state.form_submitted is not None and st.session_state.compulsory_df is not None and flag:
@@ -795,20 +852,20 @@ if st.session_state.form_submitted is not None and st.session_state.compulsory_d
         mymsg.markdown(content)
 
         if st.session_state.electives:
-            available_courses = np.sort(merged_df["COURSE TITLE"].unique())
+            available_courses = np.sort(merged_df[st.session_state.COURSE_TITLE].unique())
             selec_course = st.radio("Select a course:", available_courses, horizontal=True, key="selec_course")
 
             if selec_course:
-                filtered_df2 = merged_df[merged_df["COURSE TITLE"] == selec_course]
+                filtered_df2 = merged_df[merged_df[st.session_state.COURSE_TITLE] == selec_course]
                 available_sections = filtered_df2["SEC"].unique().astype(int)
                 selec_section = st.selectbox("Select a section:", available_sections, key="selec_section")
                 
         else:
-            available_courses = np.sort(compul_df["COURSE TITLE"].unique())
+            available_courses = np.sort(compul_df[st.session_state.COURSE_TITLE].unique())
             selec_course = st.radio("Select a course:", available_courses, horizontal=True, key="selec2_course")
 
             if selec_course:
-                filtered_df = compul_df[compul_df["COURSE TITLE"] == selec_course]
+                filtered_df = compul_df[compul_df[st.session_state.COURSE_TITLE] == selec_course]
                 available_sections = filtered_df["SEC"].unique().astype(int)
                 selec_section = st.selectbox("Select a section:", available_sections, key="selec2_section")
 
