@@ -309,7 +309,7 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
 
             compulsory_df[COURSE_TITLE] = compulsory_df.apply(lambda row: clean_course_title(row[COURSE_TITLE]), axis=1)
             st.session_state.initial_df = compulsory_df
-        
+                    
         except:
             pass
         
@@ -321,9 +321,6 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
 
                     compulsory_df = compulsory_df[~((compulsory_df[COURSE_TITLE] == enforced_course_id) &
                                                     (compulsory_df[SEC] != enforced_section))]
-
-            else:
-                pass
         except:
             if 'constraints' in st.session_state and st.session_state['constraints']:
                 for selected_course, selected_section in st.session_state['constraints'].items():
@@ -332,9 +329,6 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
 
                     compulsory_df = disp_elec[~((disp_elec[COURSE_TITLE] == enforced_course_id) &
                                                     (disp_elec[SEC] != enforced_section))]
-
-            else:
-                pass
             
         if st.session_state.electives:
             if st.session_state.hum is not None:
@@ -363,8 +357,6 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
                 merged_df = all_elec
             elective_df = pd.concat(elective_dfs, ignore_index=True)
             st.session_state.enforced_elective = elective_df
-        else:
-            pass
             
         if compulsory_df is None:
             st.info("All constraints can't be statisfied ⚠️")
@@ -373,8 +365,6 @@ def generate_timetable(uploaded_file, timetable_placeholder, download_button_pla
         else:
             st.session_state.compulsory_df = compulsory_df
             problem = Problem()
-            
-
             course_sections = {}
             
             try:
@@ -563,7 +553,6 @@ if 'ROOM' not in st.session_state:
 if 'DAYS_HOURS' not in st.session_state:
     st.session_state.DAYS_HOURS = None
     
-    
 year_options = ["First Year", "Second Year", "Third Year", "Fourth Year"]
 semester_options = ["First Semester", "Second Semester"]
 discipline_options = ["Computer Science (CS)", "Electrical Engineering (EEE)",
@@ -573,11 +562,11 @@ discipline_options = ["Computer Science (CS)", "Electrical Engineering (EEE)",
 first_year_first_semester_requirements = ('BIO F110', 'BIO F111', 'BITS F110', 'BITS F112', 'CHEM F110', 'CHEM F111', 'CS F111', 'MATH F111')
 first_year_second_semester_requirements = ('BITS F111', 'EEE F111', 'MATH F112', 'MATH F113', 'ME F112', 'PHY F110', 'PHY F111')
 
-second_year_first_semester_requirements = ('CS F213', 'CS F214', 'CS F215', 'CS F222', 'MATH F211')
+second_year_first_semester_requirements = ('CS F211', 'CS F212', 'CS F241', 'ECE F241', 'MATH F211')
 second_year_second_semester_requirements = ('BITS F225', 'CS F211', 'CS F212', 'CS F241')
 second_year_second_semester_elective = ('ECON F211', 'MGTS F211')
 
-third_year_first_semester_requirements = ('CS F301', 'CS F342', 'CS F351', 'CS F372')
+third_year_first_semester_requirements = ('CS F303', 'CS F363', 'CS F364', 'CS F372')
 third_year_first_semester_elective = ('ECON F211', 'MGTS F211')
 third_year_second_semester_requirements = ('CS F363', 'CS F303', 'CS F364')
 third_year_second_semester_elective = ('ECON F211', 'MGTS F211')
@@ -747,8 +736,6 @@ if st.session_state.form_submitted is not None and st.session_state.all_elective
         elective_list = "\n".join([f"- **{course}**: Sec {section}" for course, section in st.session_state.electives.items()])
         content = f"#### Electives Chosen:\n{elective_list}"
         mymsg2.markdown(content)
-        
-        print(COURSE_TITLE + "******************")
         elective_titles = st.session_state.all_elective_df[st.session_state.COURSE_TITLE].unique()
         keys_to_remove = [key for key in st.session_state.constraints.keys() if key in elective_titles]
         for key in keys_to_remove:
