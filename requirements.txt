@@ -1,11 +1,10 @@
-fitz
-matplotlib
-numpy
-pandas
-Pillow
-python-constraint
 streamlit
-streamlit_js_eval
+pandas == 2.2.2
+numpy
+PyMuPDF
+tabula-py
+python-constraint
+matplotlib
+Pillow
+streamlit-js-eval
 streamlit_pdf_viewer
-tabula
-tabula_py
