@@ -602,10 +602,10 @@ third_year_second_semester_elective = ('ECON F211', 'MGTS F211')
 
 
 st.set_page_config(layout="wide", page_title="Timetable Generator", page_icon = im)
-st.image(image, use_column_width=True)
+st.image(image, use_container_width=True)
 col1, col2 = st.columns([10,2])
 col2.write("\n\n")
-col2.image("assets/blah3.gif", use_column_width=True)
+col2.image("assets/blah3.gif", use_container_width=True)
 
 col1.markdown("""### Welcome to Your Very Own Timetable Application! 
 Exclusively for BITS Students! ✨ Do you find it difficult to understand the academic timetable shared by 
@@ -675,7 +675,7 @@ if (submitted and uploaded_file is not None):
 
 st.write('\n\n')       
 divider_image = create_divider(800, 2, 'white', 1)
-st.image(divider_image, use_column_width=True)
+st.image(divider_image, use_container_width=True)
 st.write('\n\n')
 mymsg2 = st.empty()
 st.write('\n\n')
@@ -810,7 +810,7 @@ if st.session_state.form_submitted is not None and st.session_state.hum is not N
     
     st.write('\n\n')
     divider_image = create_divider(800, 2, 'white', 1)
-    st.image(divider_image, use_column_width=True)
+    st.image(divider_image, use_container_width=True)
     st.write('\n\n') 
 
 if st.session_state.form_submitted is not None and st.session_state.hum is not None and flag and st.session_state.year != 'Third Year' and st.session_state.year != 'Fourth Year':
