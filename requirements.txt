@@ -1,7 +1,7 @@
 streamlit
-pandas == 2.2.2
+pandas==2.2.2
 numpy
-PyMuPDF
+PyMuPDF==1.22.5
 tabula-py
 python-constraint
 matplotlib
