@@ -1,4 +1,5 @@
 import streamlit as st
+import base64
 import pandas as pd
 import numpy as np
 import fitz  # PyMuPDF
@@ -496,6 +497,32 @@ def create_divider(width, height, line_color, line_height):
     draw.line((0, height // 2, width, height // 2), fill=line_color, width=line_height)
     return image
 
+def sidebar_content():
+    st.title("📄 Demo Timetable")
+    st.info("Download and use a sample timetable!")
+
+    # Load demo file
+    with open("assets/demo_timetable.pdf", "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+
+    # Download Button
+    with open("assets/demo_timetable.pdf", "rb") as file:
+        demo_bytes = file.read()
+
+    st.download_button(
+        label="Download Demo Timetable 📥",
+        data=demo_bytes,
+        file_name="demo_timetable.pdf",
+        mime="application/pdf"
+    )
+
+    st.subheader("Preview:")
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="400" type="application/pdf"></iframe>'
+    st.markdown(pdf_display, unsafe_allow_html=True)
+
+def toggle_sidebar():
+    st.session_state.sidebar_visible = not st.session_state.sidebar_visible
+    
 time_slots = {
     'Monday': ['7:30-8:20', '8:25-9:15', '9:20-10:10', '10:15-11:05', '11:10-12:00', '12:05-12:55', '1:00-1:50', '1:55-2:45', '2:50-3:40'],
     'Tuesday': ['7:30-8:20', '8:25-9:15', '9:20-10:10', '10:15-11:05', '11:10-12:00', '12:05-12:55', '1:00-1:50', '1:55-2:45', '2:50-3:40'],
@@ -552,6 +579,8 @@ if 'ROOM' not in st.session_state:
     st.session_state.ROOM = None
 if 'DAYS_HOURS' not in st.session_state:
     st.session_state.DAYS_HOURS = None
+if 'sidebar_visible' not in st.session_state:
+    st.session_state.sidebar_visible = True
     
 year_options = ["First Year", "Second Year", "Third Year", "Fourth Year"]
 semester_options = ["First Semester", "Second Semester"]
@@ -580,18 +609,18 @@ col2.image("assets/blah3.gif", use_column_width=True)
 
 col1.markdown("""### Welcome to Your Very Own Timetable Application! 
 Exclusively for BITS Students! ✨ Do you find it difficult to understand the academic timetable shared by 
-the college?   
-Or you're just too lazy to find out which electives you can choose? Look no further!  
+the college? Or you're just too lazy to find out which electives you can choose? Look no further!  
 
 This application provides a dynamic and interactive way to create your own timetable completely based on 
-which discipline, year you're in.  
-Navigate through your schedule, explore different courses, and plan your semester more effectively.
+which discipline, year you're in. Navigate through your schedule, explore different courses, and plan your semester more effectively.""")
 
-##### Features:
+# Sidebar Toggle Button
+toggle_button = st.button("◀️ Get a Demo Timetable", on_click=toggle_sidebar)
 
-Interactive Timetable: Create a timetable based on your electives, section constraints  
-Course Details: Click on any course to see detailed information including 
-instructor names, room numbers, and session timings. (coming soon ✨)""")
+# Show or Hide Sidebar
+if st.session_state.sidebar_visible:
+    with st.sidebar:
+        sidebar_content()
 
 if 'form_submitted' not in st.session_state:
     st.session_state['form_submitted'] = False
