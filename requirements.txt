@@ -6,6 +6,6 @@ Pillow
 python-constraint
 streamlit
 streamlit_js_eval
-streamlit_pdf_viewe
+streamlit_pdf_viewer
 tabula
 tabula_py
